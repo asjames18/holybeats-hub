@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HolyBeats Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #1a202c, #2d3748);
+      min-height: 100vh;
+      color: #e2e8f0;
+      font-family: 'Arial', sans-serif;
+    }
+    .track-card {
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .track-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 255, 255, 0.3);
+    }
+    .glow {
+      animation: glow 1.5s infinite alternate;
+    }
+    @keyframes glow {
+      from { box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+      to { box-shadow: 0 0 20px rgba(0, 255, 255, 1); }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const mockTracks = [
+      {
+        id: 1,
+        title: "I Still Believe",
+        artist: "Lecrae feat. for King & Country",
+        source: "YouTube",
+        url: "https://www.youtube.com/embed/5rNJEKh2gYQ",
+        genre: "Hip-Hop",
+        verse: "Romans 8:31 - If God is for us, who can be against us?",
+        bio: "Lecrae is a Grammy-winning Christian rapper known for blending faith with mainstream hip-hop."
+      },
+      {
+        id: 2,
+        title: "Prodigal's Protege",
+        artist: "RYT PATH",
+        source: "YouTube",
+        url: "https://www.youtube.com/watch?v=DzFpG_OKmdY",
+        genre: "Rap",
+        verse: "Luke 15:20 - His father saw him and was filled with compassion.",
+        bio: "RYT PATH is an emerging artist in the Christian rap scene, curated by Rapzilla."
+      },
+      {
+        id: 3,
+        title: "No Church In A While",
+        artist: "Lecrae feat. 1k Phew",
+        source: "Spotify",
+        url: "https://open.spotify.com/track/3X7U8VqB3eP9nqHLvZIFv7",
+        genre: "Hip-Hop",
+        verse: "Hebrews 10:25 - Do not give up meeting together.",
+        bio: "Lecrae’s collaborations bring fresh energy to Christian hip-hop."
+      },
+      {
+        id: 4,
+        title: "Grace",
+        artist: "Christian Hip Hop",
+        source: "SoundCloud",
+        url: "https://soundcloud.com/christianhiphop/grace",
+        genre: "R&B",
+        verse: "Ephesians 2:8 - By grace you have been saved through faith.",
+        bio: "SoundCloud’s Christian Hip Hop profile showcases uplifting R&B tracks."
+      },
+      {
+        id: 5,
+        title: "The Father's",
+        artist: "Dayper",
+        source: "YouTube",
+        url: "https://www.youtube.com/watch?v=example",
+        genre: "Rap",
+        verse: "John 3:16 - For God so loved the world.",
+        bio: "Dayper is a rising star in Christian rap, featured on Rapzilla."
+      }
+    ];
+
+    const App = () => {
+      const [tracks, setTracks] = React.useState(mockTracks);
+      const [search, setSearch] = React.useState("");
+      const [favorites, setFavorites] = React.useState(JSON.parse(localStorage.getItem("favorites")) || []);
+      const [selectedTrack, setSelectedTrack] = React.useState(null);
+
+      React.useEffect(() => {
+        localStorage.setItem("favorites", JSON.stringify(favorites));
+      }, [favorites]);
+
+      const filteredTracks = tracks.filter(track =>
+        track.title.toLowerCase().includes(search.toLowerCase()) ||
+        track.artist.toLowerCase().includes(search.toLowerCase()) ||
+        track.genre.toLowerCase().includes(search.toLowerCase())
+      );
+
+      const toggleFavorite = (track) => {
+        if (favorites.find(f => f.id === track.id)) {
+          setFavorites(favorites.filter(f => f.id !== track.id));
+        } else {
+          setFavorites([...favorites, track]);
+        }
+      };
+
+      const shareTrack = (track) => {
+        const shareText = `Check out "${track.title}" by ${track.artist} on HolyBeats Hub! ${track.url}`;
+        if (navigator.share) {
+          navigator.share({ title: track.title, text: shareText, url: track.url });
+        } else {
+          alert(`Share this track: ${shareText}`);
+        }
+      };
+
+      return (
+        <div className="container mx-auto p-4">
+          <h1 className="text-4xl font-bold text-center mb-6 text-cyan-300 glow">HolyBeats Hub</h1>
+          <p className="text-lg text-center mb-8">Stream Christian Hip-Hop, Rap, and R&B from across the web!</p>
+          
+          <input
+            type="text"
+            placeholder="Search by title, artist, or genre..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full p-3 mb-6 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTracks.map(track => (
+              <div key={track.id} className="track-card bg-gray-900 p-4 rounded-lg">
+                <h3 className="text-xl font-semibold text-cyan-300">{track.title}</h3>
+                <p className="text-gray-400">{track.artist} | {track.genre}</p>
+                <p className="text-sm text-gray-500 mt-2">{track.verse}</p>
+                {track.source === "YouTube" || track.source === "SoundCloud" ? (
+                  <iframe
+                    src={track.url.replace("watch?v=", "embed/")}
+                    className="w-full h-40 mt-4 rounded"
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                  ></iframe>
+                ) : (
+                  <a
+                    href={track.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  >
+                    Listen on {track.source}
+                  </a>
+                )}
+                <div className="flex justify-between mt-4">
+                  <button
+                    onClick={() => toggleFavorite(track)}
+                    className={`px-4 py-2 rounded ${favorites.find(f => f.id === track.id) ? "bg-yellow-500" : "bg-gray-700"} text-white hover:bg-yellow-600`}
+                  >
+                    {favorites.find(f => f.id === track.id) ? "Unfavorite" : "Favorite"}
+                  </button>
+                  <button
+                    onClick={() => shareTrack(track)}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    Share
+                  </button>
+                </div>
+                <button
+                  onClick={() => setSelectedTrack(track)}
+                  className="mt-2 text-cyan-400 hover:underline"
+                >
+                  About {track.artist}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold text-cyan-300 mb-4">Your Favorites</h2>
+            {favorites.length === 0 ? (
+              <p className="text-gray-400">No favorites yet. Add some tracks!</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {favorites.map(track => (
+                  <div key={track.id} className="track-card bg-gray-900 p-4 rounded-lg">
+                    <h3 className="text-xl font-semibold text-cyan-300">{track.title}</h3>
+                    <p className="text-gray-400">{track.artist}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {selectedTrack && (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4">
+              <div className="bg-gray-900 p-6 rounded-lg max-w-lg w-full">
+                <h2 className="text-2xl font-bold text-cyan-300 mb-4">{selectedTrack.artist}</h2>
+                <p className="text-gray-300">{selectedTrack.bio}</p>
+                <p className="text-sm text-gray-500 mt-4">{selectedTrack.verse}</p>
+                <button
+                  onClick={() => setSelectedTrack(null)}
+                  className="mt-6 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    ReactDOM.render(<App />, document.getElementById("root"));
+  </script>
+</body>
+</html>
